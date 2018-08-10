@@ -3,12 +3,15 @@ using PetitsPainsAuChocolatine_PasDeBagarre.Resources;
 using PetitsPainsAuChocolatine_PasDeBagarre.Seeder;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 
@@ -19,8 +22,11 @@ namespace PetitsPainsAuChocolatine_PasDeBagarre
     /// </summary>
     public partial class MainWindow : Window
     {
-        public List<User> Users { get; set; }
+        public delegate Point GetPosition(IInputElement element);
+
+        public UserCollection Users { get; set; }
         public UsersSeeder UsersSeeder { get; set; }
+        public int RowIndex { get; set; } = -1;
 
         public MainWindow()
         {
@@ -37,12 +43,98 @@ namespace PetitsPainsAuChocolatine_PasDeBagarre
 
             UsersSeeder = new UsersSeeder();
 
-            Users = UsersSeeder.GetUsers();
+            Users = new UserCollection(UsersSeeder.GetUsers());
+
             DailyUpdateUsersDelivery();
 
             people.ItemsSource = Users.OrderBy(user => user.FirstName).ToList();
-            CurrentPeopleList.ItemsSource = Users.OrderBy(user => user.Delivery);
+
+            InitEventHandlers();
         }
+
+        private void InitEventHandlers()
+        {
+            CurrentPeopleList.PreviewMouseLeftButtonDown += new MouseButtonEventHandler(CurrentPeopleList_PreviewMouseLeftButtonDown);
+            CurrentPeopleList.Drop += new DragEventHandler(CurrentPeopleList_Drop);
+        }
+
+        #region Drag & Drop DataGrid
+        private void CurrentPeopleList_Drop(object sender, DragEventArgs e)
+        {
+            if (RowIndex < 0)
+                return;
+            int index = this.GetCurrentRowIndex(e.GetPosition);
+            if (index < 0)
+                return;
+            if (index == RowIndex)
+                return;
+            if (index == CurrentPeopleList.Items.Count - 1)
+            {
+                MessageBox.Show("This row-index cannot be drop");
+                return;
+            }
+            UserCollection userCollection = Resources["UserList"] as UserCollection;
+            User changedUser = userCollection[RowIndex];
+            userCollection.RemoveAt(RowIndex);
+            userCollection.Insert(index, changedUser);
+        }
+
+        private void CurrentPeopleList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            RowIndex = GetCurrentRowIndex(e.GetPosition);
+
+            if (RowIndex < 0)
+            {
+                return;
+            }
+            
+            CurrentPeopleList.SelectedIndex = RowIndex;
+            User selectedEmp = CurrentPeopleList.Items[RowIndex] as User;
+
+            if (selectedEmp == null)
+            {
+                return;
+            }
+
+            DragDropEffects dragdropeffects = DragDropEffects.Move;
+            if (DragDrop.DoDragDrop(CurrentPeopleList, selectedEmp, dragdropeffects)
+                                != DragDropEffects.None)
+            {
+                CurrentPeopleList.SelectedItem = selectedEmp;
+            }
+        }
+
+        private int GetCurrentRowIndex(GetPosition pos)
+        {
+            int curIndex = -1;
+            for (int i = 0; i < CurrentPeopleList.Items.Count; i++)
+            {
+                DataGridRow itm = GetRowItem(i);
+
+                if (GetMouseTargetRow(itm, pos))
+                {
+                    curIndex = i;
+                    break;
+                }
+            }
+            return curIndex;
+        }
+
+        private bool GetMouseTargetRow(Visual theTarget, GetPosition position)
+        {
+            Rect rect = VisualTreeHelper.GetDescendantBounds(theTarget);
+            Point point = position((IInputElement)theTarget);
+
+            return rect.Contains(point);
+        }
+
+        private DataGridRow GetRowItem(int index)
+        {
+            if (CurrentPeopleList.ItemContainerGenerator.Status != GeneratorStatus.ContainersGenerated)
+                return null;
+            return CurrentPeopleList.ItemContainerGenerator.ContainerFromIndex(index) as DataGridRow;
+        }
+        #endregion
 
         private void BeginningDate_Loaded(object sender, RoutedEventArgs e)
         {
@@ -158,9 +250,9 @@ namespace PetitsPainsAuChocolatine_PasDeBagarre
             {
                 ResetUsersDates();
 
-                Users.ForEach(user => user.Delivery = GetUserDeliveryDate());
+                Users.ToList().ForEach(user => user.Delivery = GetUserDeliveryDate());
 
-                UsersSeeder.RewriteUsers(Users);
+                UsersSeeder.RewriteUsers(Users.ToList());
                 RebindLists();
                 DailyUpdateUsersDelivery();
             }
@@ -168,7 +260,7 @@ namespace PetitsPainsAuChocolatine_PasDeBagarre
 
         private void DailyUpdateUsersDelivery()
         {
-            foreach (User user in Users)
+            foreach (User user in Users.ToList())
             {
                 if (user.Delivery < DateTime.Now)
                 {
@@ -276,5 +368,7 @@ namespace PetitsPainsAuChocolatine_PasDeBagarre
             }
             return null;
         }
+
+        
     }
 }

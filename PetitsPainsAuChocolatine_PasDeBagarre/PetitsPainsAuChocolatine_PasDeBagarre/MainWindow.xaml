@@ -7,40 +7,58 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="Ptits pains au chocolatine" Height="450" Width="800" ResizeMode="NoResize">
+
+    <Window.Resources>
+        <local:UserCollection x:Key="UserList" />
+    </Window.Resources>
+
     <Grid>
         <TabControl HorizontalAlignment="Left" Height="420" VerticalAlignment="Top" Width="794" Margin="0,0,-0.4,0" Background="#EEE">
-            <TabItem Header="Ordonancement" Margin="-2,-2,1.2,0">
-                <Grid Margin="0,0,0,-3.8" Width="788">
+            <TabItem Header="Ordonnancement" Margin="-2,-2,1.2,0">
+                <Grid 
+                    DataContext="{Binding  Source={StaticResource UserList}}" 
+                    Margin="0,0,0,-3.8" 
+                    Width="788"
+                >
                     <Image Source="Assets/Images/Capgemini_Logo.png" Width="100" Height="100" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,13,0"/>
                     <DataGrid 
                         Name="CurrentPeopleList"
                         ItemsSource="{Binding}"
-                        AllowDrop="True"
                         AutoGenerateColumns="False"
-                        IsReadOnly="true" 
                         ColumnWidth="*"
+                        SelectionMode="Extended"
+                        AllowDrop="True"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" HorizontalGridLinesBrush="#0070ad" 
                         VerticalGridLinesBrush="#0070ad" VerticalAlignment="Bottom" 
                         Height="267"  Width="auto" Margin="10,0,10,10" Background="#FFF" BorderThickness="0" >
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Prénom" Binding="{Binding FirstName}"/>
                             <DataGridTextColumn Header="Nom" Binding="{Binding LastName}"/>
-                            <DataGridTextColumn Header="Dernière livraison" Binding="{Binding LastDelivery}"/>
+                            <DataGridTextColumn Header="Dernière livraison" Binding="{Binding LastDelivery, StringFormat='dd MMMM yyyy'}"/>
                             <DataGridTextColumn Header="Livraison" Binding="{Binding Path=Delivery, StringFormat='dd MMMM yyyy'}" />
                         </DataGrid.Columns>
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
+                                <Setter Property="Height" Value="30" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsDeliveryPast}" Value="true">
                                         <Setter Property="Background" Value="Transparent" />
-                                        <Setter Property="Height" Value="300" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </DataGrid.RowStyle>
                         <!--<DataGrid.CellStyle>
-                            <Style TargetType="DataGridCell">
-                                <Setter Property="BorderThickness" Value="10" />
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                            <Grid Background="Transparent">
+                                                <ContentPresenter VerticalAlignment="Center" />
+                                                <ContentPresenter Height="0" />
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
                             </Style>
                         </DataGrid.CellStyle>-->
                     </DataGrid>

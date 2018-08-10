@@ -58,6 +58,7 @@
     <Compile Include="Configuration\ConfigurationHandler.cs" />
     <Compile Include="Configuration\Constants.cs" />
     <Compile Include="Entity\User.cs" />
+    <Compile Include="Entity\UserCollection.cs" />
     <Compile Include="Helper\Helper.cs" />
     <Compile Include="Resources\GlobalMessage.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -13,7 +13,7 @@ namespace PetitsPainsAuChocolatine_PasDeBagarre.Seeder
         /// Get users from the usersFile. If there is no file, it is created, as well as its previous directories.
         /// </summary>
         /// <returns>The list of all users, or an empty List of <see cref="User">User</see></returns>
-        public List<User> GetUsers()
+        public IEnumerable<User> GetUsers()
         {
             if (!File.Exists(UsersFilePath))
             {
@@ -24,7 +24,7 @@ namespace PetitsPainsAuChocolatine_PasDeBagarre.Seeder
             else
             {
                 IEnumerable<User> users = ReadCsvUsersFile();
-                return users.ToList();
+                return users;
             }
         }
 

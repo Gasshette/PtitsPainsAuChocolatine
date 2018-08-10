@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -68,6 +69,22 @@ namespace PetitsPainsAuChocolatine_PasDeBagarre
         {
             textBox.Foreground = Brushes.DarkRed;
             textBox.Text = message;
+        }
+
+        // Helper to search up the VisualTree
+        public static T FindAnchestor<T>(DependencyObject current)
+            where T : DependencyObject
+        {
+            do
+            {
+                if (current is T)
+                {
+                    return (T)current;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            while (current != null);
+            return null;
         }
     }
 }
